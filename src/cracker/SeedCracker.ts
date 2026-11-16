@@ -1,6 +1,4 @@
 import { translate } from '../i18n/translations';
-import { JavaRandom } from './JavaRandom';
-import * as Enchantments from '../enchantments/Enchantments';
 
 export class SeedCracker {
   private workers: Worker[] = [];
@@ -120,10 +118,10 @@ export class SeedCracker {
 
     return new Promise((resolve) => {
       let activeWorkers = 0;
-      let completedChunks = 0;
 
       const scheduleWorker = (worker: Worker) => {
         if (this.abortRequested) {
+          resolve({ possibleCount: this.possibleSeeds.length, seed: null });
           return;
         }
 
@@ -139,7 +137,6 @@ export class SeedCracker {
         }
 
         const chunkId = nextChunkIdx++;
-        // Start seed for this chunk in signed 32-bit int
         const startSeed = (-2147483648 + chunkId * chunkSize) | 0;
 
         worker.onmessage = (e: MessageEvent) => {
@@ -153,9 +150,10 @@ export class SeedCracker {
             }
 
             this.seedsSearched += data.count;
-            completedChunks++;
             onProgress(this.seedsSearched / this.totalSeeds);
 
+            scheduleWorker(worker);
+          } else if (data.type === 'chunk_error') {
             scheduleWorker(worker);
           }
         };
@@ -187,35 +185,78 @@ export class SeedCracker {
     onProgress: (progress: number) => void
   ): Promise<{ possibleCount: number; seed: number | null }> {
     const total = this.possibleSeeds.length;
-    const nextPossible: number[] = [];
-    const rand = new JavaRandom();
-
-    for (let i = 0; i < total; i++) {
-      if (this.abortRequested) break;
-
-      if (i % 250000 === 0) {
-        onProgress(i / total);
-        // Yield to allow UI updates
-        await new Promise((r) => setTimeout(r, 0));
-      }
-
-      const s = this.possibleSeeds[i];
-      rand.setSeed(s);
-      if (Enchantments.calcEnchantmentTableLevel(rand, 0, bookshelves, 'dummy') === slot1) {
-        if (Enchantments.calcEnchantmentTableLevel(rand, 1, bookshelves, 'dummy') === slot2) {
-          if (Enchantments.calcEnchantmentTableLevel(rand, 2, bookshelves, 'dummy') === slot3) {
-            nextPossible.push(s);
-          }
-        }
-      }
+    if (total === 0) {
+      return { possibleCount: 0, seed: null };
     }
 
-    this.possibleSeeds = nextPossible;
-    onProgress(1);
+    const seedsArray = new Int32Array(this.possibleSeeds);
+    this.possibleSeeds = [];
 
-    return {
-      possibleCount: this.possibleSeeds.length,
-      seed: this.possibleSeeds.length === 1 ? this.possibleSeeds[0] : null,
-    };
+    const chunkSize = 500000;
+    const totalChunks = Math.ceil(total / chunkSize);
+    let nextChunkIdx = 0;
+    let searchedSoFar = 0;
+
+    return new Promise((resolve) => {
+      let activeWorkers = 0;
+
+      const scheduleWorker = (worker: Worker) => {
+        if (this.abortRequested) {
+          resolve({ possibleCount: this.possibleSeeds.length, seed: null });
+          return;
+        }
+
+        if (nextChunkIdx >= totalChunks) {
+          activeWorkers--;
+          if (activeWorkers === 0) {
+            resolve({
+              possibleCount: this.possibleSeeds.length,
+              seed: this.possibleSeeds.length === 1 ? this.possibleSeeds[0] : null,
+            });
+          }
+          return;
+        }
+
+        const chunkId = nextChunkIdx++;
+        const start = chunkId * chunkSize;
+        const end = Math.min(start + chunkSize, total);
+        const sub = seedsArray.slice(start, end);
+
+        worker.onmessage = (e: MessageEvent) => {
+          if (this.abortRequested) return;
+
+          const data = e.data;
+          if (data.type === 'filter_result') {
+            const matches: Int32Array = data.matches;
+            for (let i = 0; i < matches.length; i++) {
+              this.possibleSeeds.push(matches[i]);
+            }
+            searchedSoFar += data.searchedCount;
+            onProgress(Math.min(1, searchedSoFar / total));
+            scheduleWorker(worker);
+          } else if (data.type === 'chunk_error') {
+            scheduleWorker(worker);
+          }
+        };
+
+        worker.postMessage(
+          {
+            type: 'filter_chunk',
+            chunkId,
+            seeds: sub,
+            bookshelves,
+            slot1,
+            slot2,
+            slot3,
+          },
+          [sub.buffer]
+        );
+      };
+
+      for (const worker of this.workers) {
+        activeWorkers++;
+        scheduleWorker(worker);
+      }
+    });
   }
 }
