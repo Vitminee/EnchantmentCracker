@@ -5,7 +5,8 @@ export class SeedCracker {
   private isFirstTimeState = true;
   private isRunningState = false;
   private abortRequested = false;
-  private possibleSeeds: number[] = [];
+  private seedChunks: Int32Array[] = [];
+  private totalMatchesCount = 0;
   private seedsSearched = 0;
   private totalSeeds = 4294967296;
 
@@ -31,18 +32,24 @@ export class SeedCracker {
   }
 
   public getPossibleSeedsCount(): number {
-    return this.possibleSeeds.length;
+    return this.totalMatchesCount;
   }
 
   public getSingleSeed(): number | null {
-    return this.possibleSeeds.length === 1 ? this.possibleSeeds[0] : null;
+    if (this.totalMatchesCount === 1) {
+      for (const chunk of this.seedChunks) {
+        if (chunk.length === 1) return chunk[0];
+      }
+    }
+    return null;
   }
 
   public reset(): void {
     this.abortRequested = true;
     this.isRunningState = false;
     this.isFirstTimeState = true;
-    this.possibleSeeds = [];
+    this.seedChunks = [];
+    this.totalMatchesCount = 0;
     this.seedsSearched = 0;
   }
 
@@ -88,6 +95,13 @@ export class SeedCracker {
     this.abortRequested = false;
     this.isRunningState = true;
 
+    // If cracker already narrowed to 1 seed or 0 seeds, auto-reset so next crack searches fresh for XP Seed 2
+    if (!this.isFirstTimeState && (this.totalMatchesCount === 1 || this.totalMatchesCount === 0)) {
+      this.isFirstTimeState = true;
+      this.seedChunks = [];
+      this.totalMatchesCount = 0;
+    }
+
     if (this.isFirstTimeState) {
       this.isFirstTimeState = false;
       const res = await this.firstInput(bookshelves, slot1, slot2, slot3, onProgress);
@@ -108,7 +122,8 @@ export class SeedCracker {
     onProgress: (progress: number) => void
   ): Promise<{ possibleCount: number; seed: number | null }> {
     this.seedsSearched = 0;
-    this.possibleSeeds = [];
+    this.seedChunks = [];
+    this.totalMatchesCount = 0;
 
     // 4,294,967,296 total seeds, from -2,147,483,648 to 2,147,483,647
     // Chunk size: 16,777,216 (256 chunks)
@@ -121,7 +136,7 @@ export class SeedCracker {
 
       const scheduleWorker = (worker: Worker) => {
         if (this.abortRequested) {
-          resolve({ possibleCount: this.possibleSeeds.length, seed: null });
+          resolve({ possibleCount: this.totalMatchesCount, seed: null });
           return;
         }
 
@@ -129,8 +144,8 @@ export class SeedCracker {
           activeWorkers--;
           if (activeWorkers === 0) {
             resolve({
-              possibleCount: this.possibleSeeds.length,
-              seed: this.possibleSeeds.length === 1 ? this.possibleSeeds[0] : null,
+              possibleCount: this.totalMatchesCount,
+              seed: this.getSingleSeed(),
             });
           }
           return;
@@ -145,8 +160,10 @@ export class SeedCracker {
           const data = e.data;
           if (data.type === 'chunk_result') {
             const matches: Int32Array = data.matches;
-            for (let i = 0; i < matches.length; i++) {
-              this.possibleSeeds.push(matches[i]);
+            if (matches && matches.length > 0) {
+              // Store directly as chunk with zero array expansion overhead
+              this.seedChunks.push(matches);
+              this.totalMatchesCount += matches.length;
             }
 
             this.seedsSearched += data.count;
@@ -154,8 +171,17 @@ export class SeedCracker {
 
             scheduleWorker(worker);
           } else if (data.type === 'chunk_error') {
+            this.seedsSearched += chunkSize;
+            onProgress(this.seedsSearched / this.totalSeeds);
             scheduleWorker(worker);
           }
+        };
+
+        worker.onerror = (err) => {
+          console.error('Worker error:', err);
+          this.seedsSearched += chunkSize;
+          onProgress(this.seedsSearched / this.totalSeeds);
+          scheduleWorker(worker);
         };
 
         worker.postMessage({
@@ -184,17 +210,18 @@ export class SeedCracker {
     slot3: number,
     onProgress: (progress: number) => void
   ): Promise<{ possibleCount: number; seed: number | null }> {
-    const total = this.possibleSeeds.length;
-    if (total === 0) {
+    const inputChunks = this.seedChunks;
+    const totalSeeds = this.totalMatchesCount;
+
+    if (totalSeeds === 0 || inputChunks.length === 0) {
       return { possibleCount: 0, seed: null };
     }
 
-    const seedsArray = new Int32Array(this.possibleSeeds);
-    this.possibleSeeds = [];
+    this.seedChunks = [];
+    this.totalMatchesCount = 0;
 
-    const chunkSize = 500000;
-    const totalChunks = Math.ceil(total / chunkSize);
     let nextChunkIdx = 0;
+    const totalChunks = inputChunks.length;
     let searchedSoFar = 0;
 
     return new Promise((resolve) => {
@@ -202,25 +229,24 @@ export class SeedCracker {
 
       const scheduleWorker = (worker: Worker) => {
         if (this.abortRequested) {
-          resolve({ possibleCount: this.possibleSeeds.length, seed: null });
+          resolve({ possibleCount: this.totalMatchesCount, seed: null });
           return;
         }
 
         if (nextChunkIdx >= totalChunks) {
           activeWorkers--;
           if (activeWorkers === 0) {
+            onProgress(1);
             resolve({
-              possibleCount: this.possibleSeeds.length,
-              seed: this.possibleSeeds.length === 1 ? this.possibleSeeds[0] : null,
+              possibleCount: this.totalMatchesCount,
+              seed: this.getSingleSeed(),
             });
           }
           return;
         }
 
         const chunkId = nextChunkIdx++;
-        const start = chunkId * chunkSize;
-        const end = Math.min(start + chunkSize, total);
-        const sub = seedsArray.slice(start, end);
+        const chunk = inputChunks[chunkId];
 
         worker.onmessage = (e: MessageEvent) => {
           if (this.abortRequested) return;
@@ -228,28 +254,36 @@ export class SeedCracker {
           const data = e.data;
           if (data.type === 'filter_result') {
             const matches: Int32Array = data.matches;
-            for (let i = 0; i < matches.length; i++) {
-              this.possibleSeeds.push(matches[i]);
+            if (matches && matches.length > 0) {
+              this.seedChunks.push(matches);
+              this.totalMatchesCount += matches.length;
             }
             searchedSoFar += data.searchedCount;
-            onProgress(Math.min(1, searchedSoFar / total));
+            onProgress(Math.min(1, searchedSoFar / totalSeeds));
             scheduleWorker(worker);
           } else if (data.type === 'chunk_error') {
+            searchedSoFar += chunk.length;
             scheduleWorker(worker);
           }
+        };
+
+        worker.onerror = (err) => {
+          console.error('Worker filter error:', err);
+          searchedSoFar += chunk.length;
+          scheduleWorker(worker);
         };
 
         worker.postMessage(
           {
             type: 'filter_chunk',
             chunkId,
-            seeds: sub,
+            seeds: chunk,
             bookshelves,
             slot1,
             slot2,
             slot3,
           },
-          [sub.buffer]
+          [chunk.buffer]
         );
       };
 
