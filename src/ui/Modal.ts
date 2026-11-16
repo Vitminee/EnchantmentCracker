@@ -62,8 +62,8 @@ export function showMinecraftModal(
 
   ctx.drawImage(assets.mcframe, 8, 8, 1, 1, edgeW, edgeH, w - 16, h - 16);
 
-  // Title
-  ctx.font = '11px "Minecraftia", sans-serif';
+  // Title in Tahoma, Arial
+  ctx.font = '13px Tahoma, Arial, sans-serif';
   ctx.fillStyle = '#000000';
   ctx.textBaseline = 'top';
   ctx.fillText(title, 12, 10);
@@ -77,21 +77,40 @@ export function showMinecraftModal(
   msgEl.style.left = '16px';
   msgEl.style.width = '268px';
   msgEl.style.color = '#000000';
-  msgEl.style.fontFamily = '"Minecraftia", sans-serif';
-  msgEl.style.fontSize = '10px';
-  msgEl.style.lineHeight = '16px';
+  msgEl.style.fontFamily = 'Tahoma, Arial, sans-serif';
+  msgEl.style.fontSize = '12px';
+  msgEl.style.lineHeight = '18px';
   msgEl.textContent = message;
   modalBox.appendChild(msgEl);
+
+  function closeModal() {
+    window.removeEventListener('keydown', onKeyDown);
+    overlay.remove();
+    activeModalOverlay = null;
+    if (onClose) onClose();
+  }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      closeModal();
+    }
+  }
+  window.addEventListener('keydown', onKeyDown);
+
+  // Clicking backdrop closes modal
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeModal();
+    }
+  });
 
   // OK Button
   const okBtn = new ProgressButton(assets, 70, 22, 'OK');
   okBtn.setBounds(115, 122, 70, 22);
   okBtn.onClick(() => {
-    overlay.remove();
-    activeModalOverlay = null;
-    if (onClose) onClose();
+    closeModal();
   });
-  modalBox.appendChild(okBtn.canvas);
+  modalBox.appendChild(okBtn.el);
 
   overlay.appendChild(modalBox);
   document.body.appendChild(overlay);
