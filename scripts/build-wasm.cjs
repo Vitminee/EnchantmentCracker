@@ -6,7 +6,7 @@ async function build() {
   const wabt = await wabtFactory();
 
   const wat = `(module
-  (memory (export "memory") 16 256)
+  (memory (export "memory") 128 2048)
 
   ;; crack_block searches count seeds starting at startSeed.
   ;; Matches are written to memory as i32 at index (matchCount * 4).
@@ -152,7 +152,7 @@ async function build() {
             (br_if $main_loop (i32.ne (local.get $slot1) (i32.const 1)))
           )
           (else
-            (br_if $main_loop (i32.ne (local.get $ench1) (local.get $slot1)))
+            (br_if $main_loop (i32.ne (local.get $slot1) (local.get $ench1)))
           )
         )
 
@@ -222,7 +222,7 @@ async function build() {
         (local.set $ench2
           (i32.div_s (i32.mul (i32.add (local.get $ench2r1) (local.get $ench2r2)) (i32.const 2)) (i32.const 3))
         )
-        (br_if $main_loop (i32.ne (local.get $ench2) (local.get $secondSubOne)))
+        (br_if $main_loop (i32.ne (local.get $secondSubOne) (local.get $ench2)))
 
         ;; --- Slot 3, part 1 ---
         (local.set $seed
@@ -290,9 +290,15 @@ async function build() {
         (local.set $slot3Calc
           (select (local.get $ench3) (local.get $twoShelves) (i32.gt_s (local.get $ench3) (local.get $twoShelves)))
         )
-        (br_if $main_loop (i32.ne (local.get $slot3Calc) (local.get $slot3)))
+        (br_if $main_loop (i32.ne (local.get $slot3) (local.get $slot3Calc)))
 
-        ;; --- All matched! Store curSeed in memory ---
+        ;; --- All matched! Grow memory if needed and store curSeed ---
+        (if (i32.ge_u (i32.shl (local.get $matchCount) (i32.const 2)) (i32.sub (i32.shl (memory.size) (i32.const 16)) (i32.const 64)))
+          (then
+            (drop (memory.grow (i32.const 64)))
+          )
+        )
+
         (i32.store
           (i32.shl (local.get $matchCount) (i32.const 2))
           (local.get $curSeed)
@@ -313,7 +319,7 @@ async function build() {
   // Save binary wasm
   fs.writeFileSync(path.join('src', 'cracker', 'cracker.wasm'), Buffer.from(binary));
 
-  // Also generate a JS/TS module with base64 embedded wasm so workers can instantiate it with zero network requests or path issues!
+  // Generate JS/TS module with base64 embedded wasm
   const b64 = Buffer.from(binary).toString('base64');
   fs.writeFileSync(
     path.join('src', 'cracker', 'crackerWasmBase64.ts'),
