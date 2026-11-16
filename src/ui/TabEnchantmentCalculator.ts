@@ -101,7 +101,7 @@ export class TabEnchantmentCalculator {
       translate('enchCalc.calculate.tooltip')
     );
     this.findButton.setBounds(6, 190, 264, 24);
-    this.el.appendChild(this.findButton.canvas);
+    this.el.appendChild(this.findButton.el);
 
     this.doneButton = new ProgressButton(
       assets,
@@ -112,7 +112,7 @@ export class TabEnchantmentCalculator {
     );
     this.doneButton.setBounds(276, 190, 58, 24);
     this.doneButton.setProgress(NaN); // initially disabled
-    this.el.appendChild(this.doneButton.canvas);
+    this.el.appendChild(this.doneButton.el);
 
     // 5. Output Labels
     this.outDrop = this.createOutputLabel('-', 40, 232, 120, 20, translate('enchCalc.throwCount.tooltip'));

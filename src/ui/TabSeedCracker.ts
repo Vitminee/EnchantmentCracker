@@ -64,7 +64,7 @@ export class TabSeedCracker {
       translate('enchCrack.calculate')
     );
     this.btnCalculate.setBounds(0, 84, 152, 22);
-    this.el.appendChild(this.btnCalculate.canvas);
+    this.el.appendChild(this.btnCalculate.el);
 
     // 5. Check Progress Button
     this.progressBar = new ProgressButton(
@@ -75,7 +75,7 @@ export class TabSeedCracker {
       translate('enchCrack.check.tooltip')
     );
     this.progressBar.setBounds(0, 282, 252, 22);
-    this.el.appendChild(this.progressBar.canvas);
+    this.el.appendChild(this.progressBar.el);
 
     // 6. Reset Button
     this.btnReset = new ProgressButton(
@@ -86,7 +86,7 @@ export class TabSeedCracker {
       translate('enchCrack.reset.tooltip')
     );
     this.btnReset.setBounds(258, 282, 80, 22);
-    this.el.appendChild(this.btnReset.canvas);
+    this.el.appendChild(this.btnReset.el);
 
     this.setupActions();
   }

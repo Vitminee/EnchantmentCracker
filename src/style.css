@@ -19,9 +19,9 @@ html, body {
   overflow: hidden;
   background-color: #1a1a1a;
   background-image: radial-gradient(circle at center, #2e2e2e 0%, #111111 100%);
-  font-family: 'Minecraftia', sans-serif;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  font-family: Tahoma, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app-container {
@@ -51,6 +51,23 @@ html, body {
   height: 390px;
   z-index: 1;
   pointer-events: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#window-title {
+  position: absolute;
+  top: 56px;
+  left: 10px;
+  width: 300px;
+  height: 18px;
+  line-height: 18px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  color: #000000;
+  z-index: 3;
+  pointer-events: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 #window-content {
@@ -76,7 +93,45 @@ html, body {
   display: block;
 }
 
-/* Fixed Text Field - matching Java Swing FixedTextField */
+/* Button with Canvas background and crisp DOM text */
+.mc-button {
+  position: absolute;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+}
+
+.mc-button canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+.mc-button-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  color: #000000;
+  pointer-events: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fixed Text Field - matching Java Swing FixedTextField with Minecraftia font */
 .mc-input {
   position: absolute;
   background: #ffffff;
@@ -85,7 +140,7 @@ html, body {
   font-family: 'Minecraftia', sans-serif;
   font-size: 8px;
   line-height: 18px;
-  padding: 0 2px;
+  padding: 0 3px;
   outline: none;
   border-radius: 0;
   user-select: text;
@@ -101,13 +156,13 @@ html, body {
   color: #000000;
   font-family: Tahoma, Arial, sans-serif;
   font-size: 13px;
-  letter-spacing: normal;
   line-height: 20px;
   white-space: nowrap;
   pointer-events: none;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Scroll area for enchantments - matching Java Swing classic scrollpane */
+/* Scroll area for enchantments */
 #ench-scroll-pane {
   position: absolute;
   top: 80px;
@@ -186,11 +241,11 @@ html, body {
   line-height: 22px;
   font-family: Tahoma, Arial, sans-serif;
   font-size: 13px;
-  letter-spacing: normal;
   color: #000000;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Dropdown select for version */
@@ -207,23 +262,23 @@ html, body {
   padding: 0 2px;
 }
 
-/* About tab matching Image 3 */
+/* About tab */
 #about-content {
-  padding: 6px 8px;
+  padding: 8px 10px;
   font-family: Tahoma, Arial, sans-serif;
-  font-size: 13px;
-  letter-spacing: normal;
+  font-size: 12.5px;
   color: #000000;
-  line-height: 20px;
+  line-height: 18px;
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
+  -webkit-font-smoothing: antialiased;
 }
 
 #about-content a {
   color: #0000ff;
   text-decoration: underline;
   cursor: pointer;
-  white-space: nowrap;
 }
 
 #about-content a:hover {
@@ -247,40 +302,4 @@ html, body {
   max-width: 300px;
   white-space: pre-wrap;
   word-wrap: break-word;
-}
-
-/* GUI Scale bar */
-#scale-controls {
-  position: fixed;
-  bottom: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 6px 10px;
-  border: 1px solid #373737;
-  font-size: 12px;
-  color: #aaaaaa;
-  z-index: 9999;
-}
-
-#scale-controls button {
-  background: #2b2b2b;
-  border: 1px solid #555555;
-  color: #ffffff;
-  font-family: 'Minecraftia', sans-serif;
-  font-size: 12px;
-  padding: 2px 6px;
-  cursor: pointer;
-}
-
-#scale-controls button:hover {
-  background: #3c3c3c;
-}
-
-#scale-controls button.active {
-  background: #005000;
-  border-color: #00ff00;
-  color: #ffffff;
 }

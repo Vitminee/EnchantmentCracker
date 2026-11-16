@@ -2,8 +2,10 @@ import { AppAssets } from './AssetLoader';
 import { attachTooltip } from './Tooltip';
 
 export class ProgressButton {
-  public canvas: HTMLCanvasElement;
+  public el: HTMLElement;
+  private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private textEl: HTMLElement;
   private assets: AppAssets;
   private text: string;
   private progress: number = -1; // -1: normal enabled, 0..1: in-progress, Infinity: success, NaN: fail
@@ -23,26 +25,33 @@ export class ProgressButton {
     this.text = initialText;
     this.tooltipText = tooltip;
 
+    this.el = document.createElement('div');
+    this.el.className = 'mc-button';
+    this.el.style.width = `${width}px`;
+    this.el.style.height = `${height}px`;
+
     this.canvas = document.createElement('canvas');
     this.canvas.width = width;
     this.canvas.height = height;
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.cursor = 'pointer';
-    this.canvas.style.imageRendering = 'pixelated';
-
     this.ctx = this.canvas.getContext('2d')!;
     this.ctx.imageSmoothingEnabled = false;
+    this.el.appendChild(this.canvas);
+
+    this.textEl = document.createElement('span');
+    this.textEl.className = 'mc-button-text';
+    this.textEl.textContent = initialText;
+    this.el.appendChild(this.textEl);
 
     this.setupEvents();
     this.render();
 
     if (tooltip) {
-      attachTooltip(this.canvas, () => this.tooltipText);
+      attachTooltip(this.el, () => this.tooltipText);
     }
   }
 
   private setupEvents() {
-    this.canvas.addEventListener('mousedown', (e) => {
+    this.el.addEventListener('mousedown', (e) => {
       if (e.button !== 0 || !this.enabled || (this.progress >= 0 && this.progress <= 1)) return;
       this.isPressed = true;
       this.render();
@@ -55,20 +64,24 @@ export class ProgressButton {
       }
     });
 
-    this.canvas.addEventListener('click', () => {
+    this.el.addEventListener('click', () => {
       if (!this.enabled || (this.progress >= 0 && this.progress <= 1)) return;
       if (this.onClickHandler) this.onClickHandler();
     });
   }
 
-  public setBounds(x: number, y: number, w: number, h: number): void {
-    this.canvas.style.left = `${x}px`;
-    this.canvas.style.top = `${y}px`;
-    if (this.canvas.width !== w || this.canvas.height !== h) {
-      this.canvas.width = w;
-      this.canvas.height = h;
-      this.ctx.imageSmoothingEnabled = false;
-      this.render();
+  public setBounds(x: number, y: number, w?: number, h?: number): void {
+    this.el.style.left = `${x}px`;
+    this.el.style.top = `${y}px`;
+    if (w !== undefined && h !== undefined) {
+      this.el.style.width = `${w}px`;
+      this.el.style.height = `${h}px`;
+      if (this.canvas.width !== w || this.canvas.height !== h) {
+        this.canvas.width = w;
+        this.canvas.height = h;
+        this.ctx.imageSmoothingEnabled = false;
+        this.render();
+      }
     }
   }
 
@@ -119,12 +132,9 @@ export class ProgressButton {
 
     const sy = stateIdx * 22;
 
-    // Draw 9-slice / 3-slice button
-    // Left edge (2px wide)
+    // Draw 3-slice button background
     ctx.drawImage(btnImg, 0, sy, 2, 22, 0, 0, 2, h);
-    // Center stretch (1px wide)
     ctx.drawImage(btnImg, 2, sy, 1, 22, 2, 0, w - 4, h);
-    // Right edge (2px wide)
     ctx.drawImage(btnImg, 3, sy, 2, 22, w - 2, 0, 2, h);
 
     // Green progress bar fill
@@ -137,11 +147,7 @@ export class ProgressButton {
       ctx.fillRect(2, 2, fillW, h - 4);
     }
 
-    // Text
-    ctx.font = '13px Tahoma, Arial, sans-serif';
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'center';
-
+    // Update DOM text
     let displayStr = this.text;
     let textColor = '#000000';
 
@@ -156,7 +162,7 @@ export class ProgressButton {
       textColor = '#7f7f7f';
     }
 
-    ctx.fillStyle = textColor;
-    ctx.fillText(displayStr, Math.floor(w / 2), Math.floor(h / 2) + 1);
+    this.textEl.textContent = displayStr;
+    this.textEl.style.color = textColor;
   }
 }
