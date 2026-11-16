@@ -99,8 +99,9 @@ html, body {
 .mc-label {
   position: absolute;
   color: #000000;
-  font-family: 'Minecraftia', sans-serif;
-  font-size: 8px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: normal;
   line-height: 20px;
   white-space: nowrap;
   pointer-events: none;
@@ -183,8 +184,9 @@ html, body {
   width: 154px;
   height: 22px;
   line-height: 22px;
-  font-family: 'Minecraftia', sans-serif;
-  font-size: 8px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: normal;
   color: #000000;
   white-space: nowrap;
   overflow: hidden;
@@ -208,10 +210,11 @@ html, body {
 /* About tab matching Image 3 */
 #about-content {
   padding: 6px 8px;
-  font-family: 'Minecraftia', sans-serif;
-  font-size: 8px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: normal;
   color: #000000;
-  line-height: 14px;
+  line-height: 20px;
   overflow-y: auto;
   height: 100%;
 }

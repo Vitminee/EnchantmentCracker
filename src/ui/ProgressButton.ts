@@ -138,7 +138,7 @@ export class ProgressButton {
     }
 
     // Text
-    ctx.font = '8px "Minecraftia", sans-serif';
+    ctx.font = '13px Tahoma, Arial, sans-serif';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
 

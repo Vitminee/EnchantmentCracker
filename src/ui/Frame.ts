@@ -209,12 +209,12 @@ export class MinecraftFrame {
       ctx.drawImage(icon, 0, 0, 16, 16, a * 54 + 12, 12, 32, 32);
     }
 
-    // 3. Draw Title text at (10, 65) matching Java 5 + ascent + tabH (5 + 8 + 52)
-    ctx.font = '8px "Minecraftia", sans-serif';
+    // 3. Draw Title text at (10, 68) matching Java Dialog 16 (cap height ~11px)
+    ctx.font = '13px Tahoma, Arial, sans-serif';
     ctx.fillStyle = '#000000';
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
-    ctx.fillText(this.tabTitles[this.curTab], 10, 65);
+    ctx.fillText(this.tabTitles[this.curTab], 10, 68);
 
     // 4. Draw Window control buttons
     // Pin Button (306, 60, 18, 18) - buttonblue.png (36x18)
