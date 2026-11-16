@@ -8,17 +8,24 @@ import { TabEnchantmentCalculator } from './ui/TabEnchantmentCalculator';
 import { TabAbout } from './ui/TabAbout';
 
 async function bootstrap() {
+  console.log('[Boot] 1. Init tooltip');
   initTooltip();
 
+  console.log('[Boot] 2. Loading assets');
   const assets = await loadAssets();
+  console.log('[Boot] 3. Assets loaded');
+
   const cracker = new SeedCracker();
+  console.log('[Boot] 4. Cracker initialized');
 
   const windowEl = document.getElementById('minecraft-window')!;
   const contentEl = document.getElementById('window-content')!;
 
   const frame = new MinecraftFrame(assets, windowEl);
+  console.log('[Boot] 5. Frame created');
 
   const tab0 = new TabSeedCracker(assets, cracker);
+  console.log('[Boot] 6. Tab0 created');
   const tab1 = new TabEnchantmentCalculator(
     assets,
     () => tab0.playerSeedInput.value.trim(),
@@ -26,7 +33,9 @@ async function bootstrap() {
       tab0.playerSeedInput.value = newSeed;
     }
   );
+  console.log('[Boot] 7. Tab1 created');
   const tab2 = new TabAbout('V1.9');
+  console.log('[Boot] 8. Tab2 created');
 
   contentEl.appendChild(tab0.el);
   contentEl.appendChild(tab1.el);
@@ -50,6 +59,7 @@ async function bootstrap() {
 
   // Default to Tab 0
   showTab(0);
+  console.log('[Boot] 9. Done, showing tab 0');
 
   // GUI Scale handler
   let curScale = 2;
@@ -75,5 +85,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
+  (window as any).__ERROR__ = err?.stack || err?.message || String(err);
   console.error('Failed to initialize Enchantment Cracker:', err);
 });

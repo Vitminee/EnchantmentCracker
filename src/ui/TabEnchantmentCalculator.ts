@@ -172,6 +172,10 @@ export class TabEnchantmentCalculator {
     this.el.appendChild(this.levelInput);
 
     this.setupActions();
+
+    // Pre-select Netherite Sword matching default state
+    this.itemPicker.setSelectedItem(Items.NETHERITE_SWORD);
+    this.rebuildEnchantmentList(Items.NETHERITE_SWORD);
   }
 
   private createOutputLabel(
@@ -219,7 +223,7 @@ export class TabEnchantmentCalculator {
 
     this.enchListContainer.style.height = `${fullList.length * 26}px`;
 
-    for (let a = 0; a < fullList.size ? fullList.length : fullList.length; a++) {
+    for (let a = 0; a < fullList.length; a++) {
       const inst = fullList[a];
       const row = document.createElement('div');
       row.className = 'ench-row';

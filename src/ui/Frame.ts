@@ -166,9 +166,7 @@ export class MinecraftFrame {
     const edgeH = 8;
 
     // 1. Draw outer frame 9-slice from mcframe.png (17x17)
-    // Corners:
-    // Top-Left (0, 0, 8, 8) -> (0, tabH, 8, 8)
-    ctx.drawImage(this.assets.mcframe, 0, 0, edgeW, edgeH, 0, tabH, edgeW, edgeH);
+    // Corners: (top-left is covered by tabs, matching Java StyledBorder)
     // Top-Right (9, 0, 8, 8) -> (w - 8, tabH, 8, 8)
     ctx.drawImage(this.assets.mcframe, 9, 0, edgeW, edgeH, w - edgeW, tabH, edgeW, edgeH);
     // Bottom-Left (0, 9, 8, 8) -> (0, h - 8, 8, 8)
@@ -211,12 +209,12 @@ export class MinecraftFrame {
       ctx.drawImage(icon, 0, 0, 16, 16, a * 54 + 12, 12, 32, 32);
     }
 
-    // 3. Draw Title text at (10, 68)
-    ctx.font = '11px "Minecraftia", sans-serif';
+    // 3. Draw Title text at (10, 65) matching Java 5 + ascent + tabH (5 + 8 + 52)
+    ctx.font = '8px "Minecraftia", sans-serif';
     ctx.fillStyle = '#000000';
-    ctx.textBaseline = 'middle';
+    ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
-    ctx.fillText(this.tabTitles[this.curTab], 10, 69);
+    ctx.fillText(this.tabTitles[this.curTab], 10, 65);
 
     // 4. Draw Window control buttons
     // Pin Button (306, 60, 18, 18) - buttonblue.png (36x18)
