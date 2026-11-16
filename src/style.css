@@ -1,0 +1,255 @@
+@font-face {
+  font-family: 'Minecraftia';
+  src: url('/data/Minecraftia-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #1a1a1a;
+  background-image: radial-gradient(circle at center, #2e2e2e 0%, #111111 100%);
+  font-family: 'Minecraftia', sans-serif;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#app-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The floating Minecraft Frame */
+#minecraft-window {
+  position: absolute;
+  width: 354px;
+  height: 390px;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.7));
+}
+
+#window-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 354px;
+  height: 390px;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+#window-content {
+  position: absolute;
+  top: 78px;
+  left: 8px;
+  width: 338px;
+  height: 304px;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.tab-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 338px;
+  height: 304px;
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+/* Fixed Text Field */
+.mc-input {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #373737;
+  color: #000000;
+  font-family: 'Minecraftia', sans-serif;
+  font-size: 11px;
+  line-height: 18px;
+  padding: 0 3px;
+  outline: none;
+  border-radius: 0;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.mc-input:focus {
+  border-color: #000000;
+}
+
+.mc-input.invalid {
+  background-color: rgb(255, 76, 0) !important;
+}
+
+.mc-label {
+  position: absolute;
+  color: #000000;
+  font-family: 'Minecraftia', sans-serif;
+  font-size: 11px;
+  line-height: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Scroll area for enchantments */
+#ench-scroll-pane {
+  position: absolute;
+  top: 80px;
+  left: 6px;
+  width: 328px;
+  height: 103px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  background: transparent;
+}
+
+/* Custom Minecraft Scrollbar */
+#ench-scroll-pane::-webkit-scrollbar {
+  width: 12px;
+}
+
+#ench-scroll-pane::-webkit-scrollbar-track {
+  background: #2b2b2b;
+  border-left: 2px solid #373737;
+}
+
+#ench-scroll-pane::-webkit-scrollbar-thumb {
+  background: #8b8b8b;
+  border: 2px solid #ffffff;
+  border-right-color: #373737;
+  border-bottom-color: #373737;
+}
+
+#ench-list-container {
+  position: relative;
+  width: 310px;
+}
+
+.ench-row {
+  position: absolute;
+  left: 0;
+  height: 26px;
+  width: 100%;
+}
+
+.ench-name {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 154px;
+  height: 22px;
+  line-height: 22px;
+  font-size: 11px;
+  color: #000000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dropdown select for version */
+.mc-select {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #373737;
+  color: #000000;
+  font-family: 'Minecraftia', sans-serif;
+  font-size: 10px;
+  height: 20px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* About tab */
+#about-content {
+  padding: 10px 14px;
+  font-family: 'Minecraftia', sans-serif;
+  font-size: 10px;
+  color: #000000;
+  line-height: 16px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+#about-content a {
+  color: #0000ee;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#about-content a:hover {
+  color: #551a8b;
+}
+
+/* Custom Minecraft Tooltip */
+#mc-tooltip {
+  position: absolute;
+  display: none;
+  z-index: 10000;
+  pointer-events: none;
+  padding: 4px 6px;
+  background: #100010;
+  border: 2px solid #28005b;
+  box-shadow: 0 0 0 1px #000000;
+  color: #ffffff;
+  font-family: 'Minecraftia', sans-serif;
+  font-size: 10px;
+  line-height: 14px;
+  max-width: 250px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* GUI Scale bar */
+#scale-controls {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 10px;
+  border: 1px solid #373737;
+  font-size: 10px;
+  color: #aaaaaa;
+  z-index: 9999;
+}
+
+#scale-controls button {
+  background: #2b2b2b;
+  border: 1px solid #555555;
+  color: #ffffff;
+  font-family: 'Minecraftia', sans-serif;
+  font-size: 9px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+#scale-controls button:hover {
+  background: #3c3c3c;
+}
+
+#scale-controls button.active {
+  background: #005000;
+  border-color: #00ff00;
+  color: #ffffff;
+}

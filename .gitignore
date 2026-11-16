@@ -1,0 +1,5 @@
+node_modules
+dist
+.vscode
+original_repo
+*.log
